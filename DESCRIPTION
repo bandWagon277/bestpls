@@ -1,0 +1,15 @@
+Package: bestPLS
+Title: A package contains several variable selection method in Partial Least Square Regression
+Version: 0.0.0.9000
+Authors@R: 
+    person("First", "Last", , "first.last@example.com", role = c("aut", "cre"),
+           comment = c(ORCID = "YOUR-ORCID-ID"))
+Description: The package include implementation of four variable selection method which shows to be efficient. They are:  the variable importance in projection (VIP, filter method), uninformative variable elimination PLS(UVE, wrapped method), the backward variable elimination PLS(BVE,wrapped method), sparse PLS (SPLS,embedded method). 
+License: `use_mit_license()`, `use_gpl3_license()` or friends to pick a
+    license
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.2.3
+Imports: 
+    irlba,
+    pls
