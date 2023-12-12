@@ -104,16 +104,5 @@ bve_pls <- function(y, X, ncomp = 10, test_ratio = 0.25, VIP.threshold = 2) {
   # Using new data frame to fit pls model as the final model
   pls_fit_model_final <- plsr(y ~ ., ncomp = opt.comp, data = data_df_new)
 
-  # Extract key parameters
-  loading_weights <- pls_fit_model_final$loading.weights
-  Yloadings <- pls_fit_model_final$Yloadings
-  scores <- pls_fit_model_final$scores
-  ncomp <- pls_fit_model_final$ncomp
-
-
-  return(list(bve_selection = bve_selection,
-              loarding_weights = loading_weights,
-              Yloadings = Yloadings,
-              scores = scores,
-              ncomp = ncomp))
+  return(pls_fit_model_final)
 }
