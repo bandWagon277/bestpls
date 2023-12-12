@@ -88,12 +88,5 @@ mcuve <- function(X, Y, ncomp = 10, s = 30, split = 0.8, scale = TRUE){
 
   # Fit the final model with selected variables
   pls_final_model <- plsr(Y ~ X,  ncomp = ncomp)
-  scores<-pls_final_model$scores
-  loadings<-pls_final_model$loadings
-  Yscores<-pls_final_model$Yscores
-  Yloadings<-pls_final_model$Yloadings
-  residuals<-pls_final_model$residuals
-  fitted.values<-pls_final_model$fitted.values
-  loading.weights<-pls_final_model$loading.weights
-  return(list(scores=scores,loadings=loadings,Yscores=Yscores,Yloadings=Yloadings,loading.weights=loading.weights,residuals=residuals,fitted.values=fitted.values))
+  return(pls_final_model)
 }
