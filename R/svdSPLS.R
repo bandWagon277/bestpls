@@ -11,7 +11,7 @@
 #' @importFrom irlba irlba
 #' @export
 
-sparsePLS_0<-function(X,Y,h=2,fullrank=TRUE,maxiter=100,lambda1=0.5,lambda2=0.5){
+sparsePLS_0<-function(X,Y,h=2,fullrank=TRUE,maxiter=150,lambda1=0.5,lambda2=0.5){
   #get dimension
   p <- ncol(X)
   q <- ncol(Y)
@@ -23,8 +23,7 @@ sparsePLS_0<-function(X,Y,h=2,fullrank=TRUE,maxiter=100,lambda1=0.5,lambda2=0.5)
   loadingY <- NULL
   Xscore<-NULL
   Yscore<-NULL
-  #ScoreX<-matrix(0, nrow=p, ncol=h)
-  #ScoreY<-matrix(0, nrow=q, ncol=h)
+  weight <- NULL
 
   constrain<-function(lambda,V){
     dis = abs(V)-lambda
@@ -51,9 +50,9 @@ sparsePLS_0<-function(X,Y,h=2,fullrank=TRUE,maxiter=100,lambda1=0.5,lambda2=0.5)
     while(iter<maxiter){
       #add lasso and normalize
       u_temp = constrain(lambda1,M%*%v_old)
-      u_new = u_temp/sqrt(sum(u_temp^2))
+      u_new = u_temp/sum(u_temp^2)
       v_temp = constrain(lambda2,t(M)%*%u_old)
-      v_new = v_temp/sqrt(sum(v_temp^2))
+      v_new = v_temp/sum(v_temp^2)
       if(max(abs(u_old-u_new)) < tol){break}
       u_old = u_new
       v_old = v_new
@@ -67,11 +66,13 @@ sparsePLS_0<-function(X,Y,h=2,fullrank=TRUE,maxiter=100,lambda1=0.5,lambda2=0.5)
     w = (Y %*% v_new)/norm_v
 
     #save weight vector
+    weight_x <- u_new/norm_u
+    weight <- cbind(weight,weight_x)
 
+    #save score vector
     Xscore=cbind(Xscore,e)
     Yscore=cbind(Yscore,w)
-
-
+    
     #calculate loading of X and Y
     norm_e = sum(e^2)
     norm_w = sum(w^2)
@@ -86,5 +87,5 @@ sparsePLS_0<-function(X,Y,h=2,fullrank=TRUE,maxiter=100,lambda1=0.5,lambda2=0.5)
     X = X - e%*%t(c)
     Y = Y - e%*%t(d)
   }
-  return(list(loadingX=loadingX,loadingY=loadingY,Xscore=Xscore,Yscore=Yscore))
+  return(list(weight=weight,loadingX=loadingX,loadingY=loadingY,Xscore=Xscore,Yscore=Yscore))
 }
