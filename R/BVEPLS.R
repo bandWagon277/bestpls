@@ -10,8 +10,6 @@
 #' @importFrom pls plsr
 #' @export
 
-# Load necessary package
-library(pls)
 
 #NAMESPACE FILE
 #source("VIPPLS.R")
