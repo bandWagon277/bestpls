@@ -10,6 +10,8 @@
 #' @importFrom pls plsr
 #' @export
 
+sourceCpp("./splsCpp.cpp")
+
 sparsePLS_1<-function (x, y, K=3, eta=0.5, kappa = 0.5, eps = 1e-04, maxstep = 100){
   x <- as.matrix(x)
   n <- nrow(x)
