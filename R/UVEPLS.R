@@ -1,6 +1,4 @@
 # Wrapped method - UVE
-library(pls)
-
 #' Uninformative Variable Elimination in PLS
 #'
 #' This function performs Multivariate Calibration by Uninformative Variable Elimination on the given datasets.
