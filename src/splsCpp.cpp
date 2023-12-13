@@ -1,9 +1,7 @@
+// [[Rcpp::depends(RcppArmadillo)]]
 #include <RcppArmadillo.h>
 using namespace arma;
 
-
-// [[Rcpp::depends(RcppArmadillo)]]
-//' @export
 // [[Rcpp::export]]
 vec Ust(vec b, double eta) {
   int n = b.n_elem;
@@ -20,9 +18,6 @@ vec Ust(vec b, double eta) {
   return b_ust;
 }
 
-
-// [[Rcpp::depends(RcppArmadillo)]]
-//' @export
 // [[Rcpp::export]]
 mat case_1(mat M,vec c, double eps,int maxstep,double eta){
   double dis = 10;
