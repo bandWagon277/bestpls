@@ -88,5 +88,5 @@ mcuve <- function(X, Y, ncomp = 10, s = 30, split = 0.8, scale = TRUE){
 
   # Fit the final model with selected variables
   pls_final_model <- plsr(Y ~ X,  ncomp = ncomp)
-  return(pls_final_model)
+  return(list("model"=pls_final_model,"index" = informative_vars_indices))
 }
