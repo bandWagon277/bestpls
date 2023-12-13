@@ -16,7 +16,5 @@ Imports:
     Rcpp,
     RcppArmadillo
 LinkingTo:
-    irlba,
-    pls,
     Rcpp,
     RcppArmadillo
