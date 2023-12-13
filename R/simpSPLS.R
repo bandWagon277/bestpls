@@ -58,7 +58,7 @@ sparsePLS_1<-function (x, y, K=3, eta=0.5, kappa = 0.5, eps = 1e-04, maxstep = 1
     y1 <- y - x %*% betahat
     new2As[[k]] <- new2A
   }
-  return(plsfit)
+  return(list("model" = plsfit,"index" = A))
 }
 
 QCQR <- function(A,b,alpha){
