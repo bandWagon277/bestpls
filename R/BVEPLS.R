@@ -102,5 +102,5 @@ bve_pls <- function(y, X, ncomp = 10, test_ratio = 0.25, VIP.threshold = 2) {
   # Using new data frame to fit pls model as the final model
   pls_fit_model_final <- plsr(y ~ ., ncomp = opt.comp, data = data_df_new)
 
-  return(pls_fit_model_final)
+  return(list("model"= pls_fit_model_final,"index" = bve_selection))
 }
