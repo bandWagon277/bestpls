@@ -10,7 +10,7 @@
 #' @importFrom pls plsr
 #' @export
 
-sourceCpp("R/splsCpp.cpp")
+sourceCpp("src/splsCpp.cpp")
 
 sparsePLS_1<-function (x, y, K=3, eta=0.5, kappa = 0.5, eps = 1e-04, maxstep = 100){
   x <- as.matrix(x)
@@ -103,6 +103,7 @@ Weight_vec_cal <-function( Z, eta, kappa, eps, maxstep ){
       # initial value for c (outside the unit circle)
       c <- matrix(10,p,1)
       c <- case_1(M,c,eps,maxstep,eta)
+      }
 
     # solve equation if 0<kappa<0.5
     if (kappa>0 & kappa<0.5){
