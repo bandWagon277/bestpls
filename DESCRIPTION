@@ -12,9 +12,4 @@ Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.2.3
 Imports: 
     irlba,
-    pls,
-    Rcpp,
-    RcppArmadillo
-LinkingTo:
-    Rcpp,
-    RcppArmadillo
+    pls
