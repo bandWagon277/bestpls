@@ -104,7 +104,7 @@ Weight_vec_cal <-function( Z, eta, kappa, eps, maxstep ){
     if (kappa==0.5){
       # initial value for c (outside the unit circle)
       c <- matrix(10,p,1)
-      c <- case_1(Ust,M,c,eps,maxstep,eta)
+      c <- case_1(M,c,eps,maxstep,eta)
       }
 
     # solve equation if 0<kappa<0.5
@@ -148,7 +148,7 @@ cppFunction('arma::vec Ust(arma::vec b, double eta) {
    return b_ust;
  }',depends = "RcppArmadillo")
 
-cppFunction('arma::mat case_1(Function Ust,arma::mat M,arma::vec c, double eps,int maxstep,double eta){
+cppFunction('arma::mat case_1(arma::mat M,arma::vec c, double eps,int maxstep,double eta){
   double dis = 10;
   int i = 1;
   arma::vec c_new = c;
@@ -165,8 +165,19 @@ cppFunction('arma::mat case_1(Function Ust,arma::mat M,arma::vec c, double eps,i
     // Soft thresholding for optimizing c (assuming lambda2 -> Inf)
     arma::mat ma = M*a;
     arma::vec ma_v = ma.col(0);
-    c_new = Ust(ma_v, eta);
-
+    arma::vec b = ma_v;
+    int n = b.n_elem;
+    arma::vec b_ust(n);
+    arma::vec sign_b = sign(b);
+    if (eta < 1) {
+      arma::vec valb = abs(b) - eta * max(abs(b));
+      for (int i = 0; i < n; i++) {
+        if (valb(i) >= 0) {
+          b_ust(i) = valb(i) * sign_b(i);
+        }
+      }
+    }
+    c_new = b_ust;
     // Calculate discrepancy between a & c
     dis = max(abs(c-c_new));
     c = c_new;
