@@ -8,13 +8,10 @@
 #' Y=matrix(rnorm(100),5,20)
 #' fit = sparsePLS(X,Y,2)
 #' @importFrom pls plsr
-#' @import Rcpp
-#' @import RcppArmadillo
 #' @export
 
-#sourceCpp("src/splsCpp.cpp")
-
-sparsePLS_1<-function (x, y, K=3, eta=0.5, kappa = 0.5, eps = 1e-04, maxstep = 100){
+sparsePLS_1<-function (x, y, K=3, eta=0.5, kappa = 0.5, eps = 1e-04, maxstep = 100)
+{
   x <- as.matrix(x)
   n <- nrow(x)
   p <- ncol(x)
@@ -49,7 +46,7 @@ sparsePLS_1<-function (x, y, K=3, eta=0.5, kappa = 0.5, eps = 1e-04, maxstep = 1
 
   for (k in 1:K) {
     Z <- t(x1) %*% y1
-    what <- Weight_vec_cal(Z, eta, kappa, eps, maxstep)
+    what <- spls.dv(Z, eta, kappa, eps, maxstep)
     A <- unique(ip[what != 0 | betahat[, 1] != 0])
     new2A <- ip[what != 0 & betahat[, 1] == 0]
     xA <- x[, A, drop = FALSE]
@@ -62,7 +59,7 @@ sparsePLS_1<-function (x, y, K=3, eta=0.5, kappa = 0.5, eps = 1e-04, maxstep = 1
     y1 <- y - x %*% betahat
     new2As[[k]] <- new2A
   }
-  return(list("model" = plsfit,"index" = A))
+  return(list("model" = plsfit,"index"=A))
 }
 
 QCQR <- function(A,b,alpha){
@@ -71,7 +68,7 @@ QCQR <- function(A,b,alpha){
   sigma <- svdA$d
   f<-function(miu){
     nume <- (sigma^2 + miu)^2
-    denom <- (sigma^2)*(c^2)
+    denom <- (sigma^2) * (c^2)
     return(sum(nume/(denom+1e-4))-1)
   }
   miu <- uniroot(f,c(1e-4,1e30))$root
@@ -79,111 +76,109 @@ QCQR <- function(A,b,alpha){
   return(svdA$v%*%(inv%*%c))
 }
 
-Weight_vec_cal <-function( Z, eta, kappa, eps, maxstep ){
+spls.dv <-function( Z, eta, kappa, eps, maxstep )
+{
   # initialization
+
   p <- nrow(Z)
   q <- ncol(Z)
-  Znorm1 <- median(abs(Z))
-  Z <- Z/Znorm1
-  
+  Znorm1 <- median( abs(Z) )
+  Z <- Z / Znorm1
+
   # main iterations
-  if ( q==1 ){
-    # if univariate response
-    # soft thresholding(assuming lambda2 -> Inf)
-    c <- Ust(Z,eta)
+
+  if ( q==1 )
+  {
+    # if univariate response, then just soft thresholding
+
+    c <- ust( Z, eta )
   }
 
-  if ( q>1 ){
+  if ( q>1 )
+  {
     # if multivariate response
+
     M <- Z %*% t(Z)
     dis <- 10
     i <- 1
 
     # main iteration: optimize c and a iteratively
-    # use svd solution if kappa==0.5
-    if (kappa==0.5){
-      # initial value for c (outside the unit circle)
-      c <- matrix(10,p,1)
-      c <- case_1(M,c,eps,maxstep,eta)
-      }
 
-    # solve equation if 0<kappa<0.5
-    if (kappa>0 & kappa<0.5){
-      kappa2 <- (1-kappa)/(1-2*kappa )
-      # initial value for c (outside the unit circle)
-      c <- matrix(255,p,1)
+    # use svd solution if kappa==0.5
+
+    if ( kappa==0.5 )
+    {
+      # initial value for a & c (outside the unit circle)
+
+      c <- matrix( 10, p, 1 )
       c.old <- c
 
-      #solve by QCQR method
-      while (dis>eps & i<=maxstep){
+      while ( dis>eps & i<=maxstep )
+      {
         # optimize a for fixed c
-        a <- QCQR(t(Z),kappa2*(t(Z)%*%c),1)
+
+        mcsvd <- svd( M%*%c )
+        a <- mcsvd$u %*% t(mcsvd$v)
 
         # optimize c for fixed a
-        # soft thresholding (assuming lambda2 -> Inf)
-        c <- Ust(M%*%a,eta)
+        # soft thresholding ( assuming lambda2 -> Inf )
+
+        c <- ust( M%*%a, eta )
 
         # calculate discrepancy between a & c
-        dis <- max(abs(c-c.old))
+
+        dis <- max( abs( c - c.old ) )
         c.old <- c
-        i <- i+1
+        i <- i + 1
+      }
+    }
+
+    # solve equation if 0<kappa<0.5
+
+    if ( kappa>0 & kappa<0.5 )
+    {
+      kappa2 <- ( 1 - kappa ) / ( 1 - 2*kappa )
+
+      # initial value for c (outside the unit circle)
+
+      c <- matrix( 255, p, 1 )
+      c.old <- c
+
+      # define function for Lagrange part
+
+      while ( dis>eps & i<=maxstep )
+      {
+
+        # optimize a for fixed c
+
+        a<-QCQR(t(Z),kappa2*(t(Z)%*%c),1)
+
+        # optimize c for fixed a
+        # soft thresholding ( assuming lambda2 -> Inf )
+
+        c <- ust( M%*%a, eta )
+
+        # calculate discrepancy between a & c
+
+        dis <- max( abs( c - c.old ) )
+        c.old <- c
+        i <- i + 1
       }
     }
   }
+
   return(c)
 }
 
-cppFunction('arma::vec Ust(arma::vec b, double eta) {
-   int n = b.n_elem;
-   arma::vec b_ust(n);
-   arma::vec sign_b = sign(b);
-   if (eta < 1) {
-     arma::vec valb = abs(b) - eta * max(abs(b));
-     for (int i = 0; i < n; i++) {
-       if (valb(i) >= 0) {
-         b_ust(i) = valb(i) * sign_b(i);
-       }
-     }
-   }
-   return b_ust;
- }',depends = "RcppArmadillo")
-
-cppFunction('arma::mat case_1(arma::mat M,arma::vec c, double eps,int maxstep,double eta){
-  double dis = 10;
-  int i = 1;
-  arma::vec c_new = c;
-
-  while (dis > eps && i <= maxstep) {
-    // Optimize a for fixed c
-    arma::mat U;
-    arma::mat V;
-    arma::vec s;
-    svd(U, s, V, M * c);
-    arma::mat a = U.col(0) * V.t();
-
-
-    // Soft thresholding for optimizing c (assuming lambda2 -> Inf)
-    arma::mat ma = M*a;
-    arma::vec ma_v = ma.col(0);
-    arma::vec b = ma_v;
-    int n = b.n_elem;
-    arma::vec b_ust(n);
-    arma::vec sign_b = sign(b);
-    if (eta < 1) {
-      arma::vec valb = abs(b) - eta * max(abs(b));
-      for (int i = 0; i < n; i++) {
-        if (valb(i) >= 0) {
-          b_ust(i) = valb(i) * sign_b(i);
-        }
-      }
-    }
-    c_new = b_ust;
-    // Calculate discrepancy between a & c
-    dis = max(abs(c-c_new));
-    c = c_new;
-    i++;
+ust <-function( b, eta )
+{
+  b.ust <- matrix( 0, length(b), 1 )
+  if ( eta < 1 )
+  {
+    valb <- abs(b) - eta * max( abs(b) )
+    b.ust[ valb>=0 ] <- valb[ valb>=0 ] * (sign(b))[ valb>=0 ]
   }
-  return c;
-}',depends = "RcppArmadillo")
+  return(b.ust)
+}
 
 
