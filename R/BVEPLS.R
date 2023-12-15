@@ -32,12 +32,12 @@ bve_pls <- function(y, X, ncomp = 10, test_ratio = 0.25, VIP.threshold = 2) {
   # Create the test set
   test_set <- data_df[test_indices, ]
   test_set_X <- X[test_indices, ]
-  test_set_y <- y[test_indices, ]
+  test_set_y <- y[test_indices]
   
   # Create the training set
   train_set <- data_df[-test_indices, ]
   train_set_X <- X[-test_indices, ]
-  train_set_y <- y[-test_indices, ]
+  train_set_y <- y[-test_indices]
   
   # Create initial variables
   terminated <- FALSE
